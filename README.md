@@ -1,5 +1,5 @@
 # Optimal_Stopping_with_signatures
-Implementation of primal and dual method for the optimal stopping problem, see https://arxiv.org/abs/2312.03444 for detailds.
+Implementation of primal and dual method for the optimal stopping problem, see https://arxiv.org/abs/2312.03444 for details.
 
 Examples include: 
 - Optimal stopping of fractional Brownian motion (lower and upper bounds)
