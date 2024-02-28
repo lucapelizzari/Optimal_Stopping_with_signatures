@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Feb 27 22:35:11 2024
-Test rBergomi American option pricing
+Test rHeston American option pricing
 @author: lucapelizzari
 """
 
