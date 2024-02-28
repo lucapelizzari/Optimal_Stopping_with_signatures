@@ -11,3 +11,4 @@ Remarks:
 - For the simulation of rHeston model, we use the code of S. Breneis (https://github.com/SimonBreneis/approximations_to_fractional_stochastic_volterra_equations/tree/master)
 - The simulation of rBergomi model we use (slightly changed version of) the code from R. McCrickerd (https://github.com/ryanmccrickerd/rough_bergomi)
 - For the simulation of fractional Brownian motion we use (slightly changed version of) the package C. Flynn (https://pypi.org/project/fbm/)
+- For the construction of the signature we use the package iisignature (https://pypi.org/project/iisignature/)
