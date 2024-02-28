@@ -8,10 +8,10 @@ Test rBergomi American option pricing
 
 import numpy as np
 import scipy as sc
-from American_Option_Pricing_rBergomi import LongstaffSchwartzrBergomi
+from American_Option_Pricing_rBergomi import LongstaffSchwartz_signature_rBergomi, DualSAA_signature_rBergomi
 
-M = 50000
-M2 = 50000
+M = 5000
+M2 = 5000
 M3 = 500
 #K_primal =3
 K_dual = 3
@@ -38,12 +38,17 @@ phi = [phi3]
 KK_dual = 3
 rho = -0.9
 #depth for Laguerre-polynomials of stat
-depth_primal = 2
-depth_dual =6
-sig_depth = 3
 h = 0.07
-K_primal = 3
-KK_primal = 6
+
+#Signature and polynomial feature level for primal
+K_signature = 3
+K_polynomial = 3
+
+#Signature and polynomial feature level for dual
+KD_signature = 3
+KD_polynomial = 3
+
+
 xi = 0.09
 eta = 1.9
 r =0.05
@@ -51,11 +56,19 @@ r =0.05
 
 
 #%%
-y0 = np.zeros((len(phi),len(N)))
-STD = np.zeros((len(phi),len(N)))
-timee = np.zeros(len(N))
+
+#lower bound outputs
+y0_lo = np.zeros((len(phi),len(N)))
+STD_lo = np.zeros((len(phi),len(N)))
+timee_lo = np.zeros(len(N))
+
+#upper bound outputs
+y0_up = np.zeros((len(phi),len(N)))
+STD_up = np.zeros((len(phi),len(N)))
+timee_up = np.zeros(len(N))
 for KK in range(len(N)):
-    y0[:,KK],STD[:,KK],timee[KK] = LongstaffSchwartzrBergomi(M,M2,N[KK],N1,T,phi,rho,K_primal,KK_primal,X0,h,xi,eta,r)
+    y0_lo[:,KK],STD_lo[:,KK],timee_lo[KK] = LongstaffSchwartz_signature_rBergomi(M,M2,N[KK],N1,T,phi,rho,K_signature,K_polynomial,X0,h,xi,eta,r)
+    y0_up[:,KK],STD_up[:,KK],timee_up[KK] = DualSAA_signature_rBergomi(M,M2,N[KK],N1,T,phi,rho,KD_signature,KD_polynomial,X0,h,xi,eta,r)
 
 
 

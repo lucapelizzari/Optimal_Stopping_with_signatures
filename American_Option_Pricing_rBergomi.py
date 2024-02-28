@@ -11,7 +11,7 @@ import numpy as np
 from rBergomi_simulation import SimulationofrBergomi
 from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet
 import scipy as sc
-from helpfunctions import SignatureFull,signatureQV
+from helpfunctions import SignatureFull,signatureQV,LP_solver
 import time
 
 def LongstaffSchwartz_signature_rBergomi(M,M2,N,N1,T,phi,rho,K,KK_primal,X0,H,xi,eta,r):
@@ -160,13 +160,12 @@ def LongstaffSchwartz_signature_rBergomi(M,M2,N,N1,T,phi,rho,K,KK_primal,X0,H,xi
         
 
 
-def DualSAA_signature_rBergomi(M,M2,N,N1,T,phi,rho,K,KK_dual,X0,H,xi,eta,r,e):
+def DualSAA_signature_rBergomi(M,M2,N,N1,T,phi,rho,K,KK_dual,X0,H,xi,eta,r):
     """Compute upper bounds for Bermuddan option price with N1 equally spased exercise dates between 0 and T.
     M,M2 = number of paths for LP, respectively resimulation for upper-bounds
     N = time-discretization for Signature
     N1 = exercise dates, N1 <= N
     T = maturity
-    e = estimate of price for randomization
     phi = array of payoff functions (i.e. different strikes)
     K = level of Signature (tensor)
     KK = number of state-polynomials added to basis-function
@@ -185,8 +184,9 @@ def DualSAA_signature_rBergomi(M,M2,N,N1,T,phi,rho,K,KK_dual,X0,H,xi,eta,r,e):
     Z = np.zeros((M,N+1,N_strikes))
     for k in range((N_strikes)):
         Z[:,:,k]= np.exp(-r*tt)*phi[k](X)
-    #compute signature of (QV,X)
+    #compute signature of (QV,X,Y)
     D = int((1-(2+1)**(K+1))/(-2) -1)
+    
     #Signatures for each payoff
     SIG = np.zeros((M,N+1,D,N_strikes))
     dX=X[:,1:N+1]-X[:,0:N]
@@ -213,17 +213,12 @@ def DualSAA_signature_rBergomi(M,M2,N,N1,T,phi,rho,K,KK_dual,X0,H,xi,eta,r,e):
         Basis_dual[:,:,0:D]=SIG[:,:,:,st]
         Basis_dual[:,:,D:DD_dual+D] = P_dual
         MG = np.zeros((M,N+1,2*(D+DD_dual)))
-        U = np.random.uniform(0,2*e[st],M)
-        L = np.zeros((M,N+1))
-        L[:,1:N+1] = Z[:,1:N+1,st]
-        L[:,0] = np.abs(U)
         print(D+DD_dual)
         for dd in range(D+DD_dual):
             for k in range(N):
                 MG[:,k+1,dd] = MG[:,k,dd] + rho*X[:,k]*np.sqrt(V[:,k])*Basis_dual[:,k,dd]*dW1[:,k,0]
                 MG[:,k+1,dd+DD_dual+D] = MG[:,k,dd+DD_dual+D] + np.sqrt(1-rho**2)*X[:,k]*np.sqrt(V[:,k])*Basis_dual[:,k,dd]*dW2[:,k]
-        #xx[:,st] = dualLPsparse1(L,tt,N1,N,D,M,MG[:,subindex2,:],subindex2)
-        xx[:,st] = dualLPsparse1(Z[:,:,st],tt,N1,N,D,M,MG[:,subindex2,:],subindex2)
+        xx[:,st] = LP_solver(Z[:,:,st],tt,N1,N,D,M,MG[:,subindex2,:],subindex2)
         print('Estimator dual for Payoff number',st,'is', np.mean(np.max(Z[:,subindex,st]-np.dot(MG,xx[:,st])[:,subindex],axis=1)),'with standard deviation',np.std(np.max(Z[:,subindex,st]-np.dot(MG,xx[:,st])[:,subindex],axis=1)))
         #print('Estimator dual for Payoff number with PYTHON',st,'is', np.mean(np.max(Z[:,subindex,st]-np.dot(MG,yy[:,st])[:,subindex],axis=1)),'with standard deviation',np.std(np.max(Z[:,subindex,st]-np.dot(MG,yy[:,st])[:,subindex],axis=1)))
     del X,V,I,dI,dW1,dW2,dB,Basis_dual,P_dual,MG,SIG,QV,dX
@@ -255,7 +250,7 @@ def DualSAA_signature_rBergomi(M,M2,N,N1,T,phi,rho,K,KK_dual,X0,H,xi,eta,r,e):
             C[k,j] = 1
             P_dual[:,:,int(k*(k+1)/2+j)] = np.polynomial.laguerre.lagval2d(X, np.sqrt(V), C)
     y0 = np.zeros((N_strikes))
-    MC = np.zeros((N_strikes))
+    STD = np.zeros((N_strikes))
     for st in range(N_strikes):
         Basis_dual = np.ones((M2,N+1,DD_dual+D))
         Basis_dual[:,:,0:D]=SIG[:,:,:,st]
@@ -267,9 +262,9 @@ def DualSAA_signature_rBergomi(M,M2,N,N1,T,phi,rho,K,KK_dual,X0,H,xi,eta,r,e):
                 MG[:,k+1,dd] = MG[:,k,dd] + rho*X[:,k]*np.sqrt(V[:,k])*Basis_dual[:,k,dd]*dW1[:,k,0]
                 MG[:,k+1,dd+DD_dual+D] = MG[:,k,dd+DD_dual+D] + np.sqrt(1-rho**2)*X[:,k]*np.sqrt(V[:,k])*Basis_dual[:,k,dd]*dW2[:,k]
         y0[st] = np.mean(np.max(Z[:,subindex,st]-np.dot(MG,xx[:,st])[:,subindex],axis=1))
-        MC[st] = np.std(np.max(Z[:,subindex,st]-np.dot(MG,xx[:,st])[:,subindex],axis=1))
-        print('Upper-biased price for Payoff number',st,'is',y0[st],'with standard deviation',MC[st])
+        STD[st] = np.std(np.max(Z[:,subindex,st]-np.dot(MG,xx[:,st])[:,subindex],axis=1))
+        print('Upper-biased price for Payoff number',st,'is',y0[st],'with standard deviation',STD[st])
         
     ss = time.time()
     timee = ss-s
-    return y0, MC,timee
+    return y0, STD,timee
