@@ -14,7 +14,7 @@ import scipy as sc
 from helpfunctions import SignatureFull,signatureQV
 import time
 
-def LongstaffSchwartzrBergomi(M,M2,N,N1,T,phi,rho,K,KK_primal,X0,H,xi,eta,r):
+def LongstaffSchwartz_signature_rBergomi(M,M2,N,N1,T,phi,rho,K,KK_primal,X0,H,xi,eta,r):
     """Compute lower bounds for Bermuddan option price with N1 equally spased exercise dates between 0 and T.
     M,M2 = number of paths for Regression, respectively resimulation for lower bounds
     N = time-discretization for Signature
@@ -160,7 +160,7 @@ def LongstaffSchwartzrBergomi(M,M2,N,N1,T,phi,rho,K,KK_primal,X0,H,xi,eta,r):
         
 
 
-def DualSAASignature(M,M2,N,N1,T,phi,rho,K,KK_dual,X0,H,xi,eta,r,e):
+def DualSAA_signature_rBergomi(M,M2,N,N1,T,phi,rho,K,KK_dual,X0,H,xi,eta,r,e):
     """Compute upper bounds for Bermuddan option price with N1 equally spased exercise dates between 0 and T.
     M,M2 = number of paths for LP, respectively resimulation for upper-bounds
     N = time-discretization for Signature

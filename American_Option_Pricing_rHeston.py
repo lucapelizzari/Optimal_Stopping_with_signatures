@@ -15,7 +15,7 @@ from helpfunctions import SignatureFull,signatureQV
 import time
 from rHestonMarkovSimulation import samples
 
-def LongstaffSchwartzrHeston(M,M2,N,N1,T,phi,rho,K,KK_primal,X0,H,lam,nu,theta,V_0,r,N_approx):
+def LongstaffSchwartz_signature_rHeston(M,M2,N,N1,T,phi,rho,K,KK_primal,X0,H,lam,nu,theta,V_0,r,N_approx):
     """Compute lower bounds for Bermuddan option price with N1 equally spased exercise dates between 0 and T.
     M,M2 = number of paths for Regression, respectively resimulation for lower bounds
     N = time-discretization for Signature
@@ -171,7 +171,7 @@ def LongstaffSchwartzrHeston(M,M2,N,N1,T,phi,rho,K,KK_primal,X0,H,lam,nu,theta,V
         
 
 
-def DualSAASignature(M,M2,N,N1,T,phi,rho,K,KK_dual,X0,H,xi,eta,r,e):
+def DualSAA_signature_rHeston(M,M2,N,N1,T,phi,rho,K,KK_dual,X0,H,xi,eta,r,e):
     """Compute upper bounds for Bermuddan option price with N1 equally spased exercise dates between 0 and T.
     M,M2 = number of paths for LP, respectively resimulation for upper-bounds
     N = time-discretization for Signature
