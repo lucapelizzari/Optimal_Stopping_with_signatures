@@ -8,8 +8,8 @@ Test rBergomi American option pricing
 
 import numpy as np
 import scipy as sc
-from American_Option_Pricing_rBergomi import LongstaffSchwartzrBergomi
-from American_Option_Pricing_rHeston import LongstaffSchwartzrHeston
+from American_Option_Pricing_rBergomi import LongstaffSchwartz_signature_rBergomi
+from American_Option_Pricing_rHeston import LongstaffSchwartz_signature_rHeston
 
 M = 50000
 M2 = 50000
@@ -37,7 +37,7 @@ y0 = np.zeros((len(phi),len(N)))
 STD = np.zeros((len(phi),len(N)))
 timee = np.zeros(len(N))
 for KK in range(len(N)):
-    y0[:,KK],STD[:,KK],timee[KK] = LongstaffSchwartzrHeston(M,M2,N[KK],N1,T,phi,rho,K,KK_primal,X0,H,lam,nu,theta,V_0,r,3)
+    y0[:,KK],STD[:,KK],timee[KK] = LongstaffSchwartz_signature_rHeston(M,M2,N[KK],N1,T,phi,rho,K,KK_primal,X0,H,lam,nu,theta,V_0,r,3)
 
 
 
