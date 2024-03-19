@@ -85,7 +85,7 @@ def LongstaffSchwartz_signature_rBergomi(M,M2,N,N1,T,phi,rho,K,KK_primal,X0,H,xi
             else:
 
                 regr[k][j-1] = LinearRegression().fit(Basis_Reg[ITM,j-1,:],value[ITM])
-                print(regr[k][j-1].score(Basis_Reg[ITM,j-1,:],value[ITM]))
+                #print(regr[k][j-1].score(Basis_Reg[ITM,j-1,:],value[ITM]))
                 reg = regr[k][j-1].predict(Basis_Reg[ITM,j-1,:])
                 #print('RMSE',np.mean((reg - value[ITM])**2))
                 for m in range(len(ITM)):
@@ -93,7 +93,7 @@ def LongstaffSchwartz_signature_rBergomi(M,M2,N,N1,T,phi,rho,K,KK_primal,X0,H,xi
                         continue
                     else:
                         value[ITM[m]] = YY[ITM[m],j-1]
-        print('Estimater LS for Payoff Number',k,'is',np.mean(value),'with standard-deviation',np.std(value))
+        #print('Estimator LS for Payoff Number',k,'is',np.mean(value),'with standard-deviation',np.std(value))
     del X,V,I,dI,dW1,dW2,dB,Basis,Basis_Reg,Basis_primal,P_primal,S,QV,dX
     #Start Resimulation
     X,V,I,dI,dW1,dW2,dB = SimulationofrBergomi(M2,N,T,phi,rho,K,X0,H,xi,eta,r)
@@ -147,7 +147,7 @@ def LongstaffSchwartz_signature_rBergomi(M,M2,N,N1,T,phi,rho,K,KK_primal,X0,H,xi
                 if i == N1-1:
                     break
             value[m] = YY[m,i]*np.exp(-r*T*(ttt[i+1]-ttt[1]))
-        print('Lower-biased price for Payoff Number',k,'is',np.mean(value),'with standard-deviation',np.std(value))
+        #print('Lower-biased price for Payoff Number',k,'is',np.mean(value),'with standard-deviation',np.std(value))
         y0[k] = np.mean(value)
         MC[k] = np.std(value)/np.sqrt(M2)
     ss = time.time()
@@ -194,7 +194,7 @@ def DualSAA_signature_rBergomi(M,M2,N,N1,T,phi,rho,K,KK_dual,X0,H,xi,eta,r):
         dXX = np.zeros((M,N,2))
         dXX[:,:,0]=dY
         dXX[:,:,1] = dX
-        SIG[:,1:N+1,:,k] = signatureQV(tt,dXX,QV,K)
+        SIG[:,:,:,k] = signatureQV(tt,dXX,QV,K)[:,:,1:D+1]
     DD_dual = int((KK_dual+1)*(KK_dual+2)/2) #Number of polynomials 2 dim
     P_dual= np.zeros((M,N+1,DD_dual))
     for k in range(KK_dual+1):
@@ -209,13 +209,12 @@ def DualSAA_signature_rBergomi(M,M2,N,N1,T,phi,rho,K,KK_dual,X0,H,xi,eta,r):
         Basis_dual[:,:,0:D]=SIG[:,:,:,st]
         Basis_dual[:,:,D:DD_dual+D] = P_dual
         MG = np.zeros((M,N+1,2*(D+DD_dual)))
-        print(D+DD_dual)
         for dd in range(D+DD_dual):
             for k in range(N):
                 MG[:,k+1,dd] = MG[:,k,dd] + rho*X[:,k]*np.sqrt(V[:,k])*Basis_dual[:,k,dd]*dW1[:,k,0]
                 MG[:,k+1,dd+DD_dual+D] = MG[:,k,dd+DD_dual+D] + np.sqrt(1-rho**2)*X[:,k]*np.sqrt(V[:,k])*Basis_dual[:,k,dd]*dW2[:,k]
         xx[:,st] = LP_solver(Z[:,:,st],tt,N1,N,D,M,MG[:,subindex2,:],subindex2)
-        print('Estimator dual for Payoff number',st,'is', np.mean(np.max(Z[:,subindex,st]-np.dot(MG,xx[:,st])[:,subindex],axis=1)),'with standard deviation',np.std(np.max(Z[:,subindex,st]-np.dot(MG,xx[:,st])[:,subindex],axis=1)))
+        #print('Estimator dual for Payoff number',st,'is', np.mean(np.max(Z[:,subindex,st]-np.dot(MG,xx[:,st])[:,subindex],axis=1)),'with standard deviation',np.std(np.max(Z[:,subindex,st]-np.dot(MG,xx[:,st])[:,subindex],axis=1)))
         #print('Estimator dual for Payoff number with PYTHON',st,'is', np.mean(np.max(Z[:,subindex,st]-np.dot(MG,yy[:,st])[:,subindex],axis=1)),'with standard deviation',np.std(np.max(Z[:,subindex,st]-np.dot(MG,yy[:,st])[:,subindex],axis=1)))
     del X,V,I,dI,dW1,dW2,dB,Basis_dual,P_dual,MG,SIG,QV,dX
     #Resimulation
@@ -237,7 +236,7 @@ def DualSAA_signature_rBergomi(M,M2,N,N1,T,phi,rho,K,KK_dual,X0,H,xi,eta,r):
         dXX = np.zeros((M2,N,2))
         dXX[:,:,0]=dY
         dXX[:,:,1] = dX
-        SIG[:,1:N+1,:,k] = signatureQV(tt,dXX,QV,K)
+        SIG[:,:,:,k] = signatureQV(tt,dXX,QV,K)[:,:,1:D+1]
     DD_dual = int((KK_dual+1)*(KK_dual+2)/2) #Number of polynomials 2 dim
     P_dual= np.zeros((M2,N+1,DD_dual))
     for k in range(KK_dual+1):
@@ -259,8 +258,8 @@ def DualSAA_signature_rBergomi(M,M2,N,N1,T,phi,rho,K,KK_dual,X0,H,xi,eta,r):
                 MG[:,k+1,dd+DD_dual+D] = MG[:,k,dd+DD_dual+D] + np.sqrt(1-rho**2)*X[:,k]*np.sqrt(V[:,k])*Basis_dual[:,k,dd]*dW2[:,k]
         y0[st] = np.mean(np.max(Z[:,subindex,st]-np.dot(MG,xx[:,st])[:,subindex],axis=1))
         STD[st] = np.std(np.max(Z[:,subindex,st]-np.dot(MG,xx[:,st])[:,subindex],axis=1))
-        print('Upper-biased price for Payoff number',st,'is',y0[st],'with standard deviation',STD[st])
+        #print('Upper-biased price for Payoff number',st,'is',y0[st],'with standard deviation',STD[st])
         
     ss = time.time()
     timee = ss-s
-    return y0, STD,timee
+    return y0, xx,timee
