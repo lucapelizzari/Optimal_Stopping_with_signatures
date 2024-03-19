@@ -49,8 +49,6 @@ def LongstaffSchwartz_signature_rBergomi(M,M2,N,N1,T,phi,rho,K,KK_primal,X0,H,xi
         
     S = signatureQV(tt,dX,QV,K)
     D = len(S[0,0,:])
-    SS = np.zeros((M,N+1,D))
-    SS[:,1:N+1] = S
     
     #Compute Basis-functions (for each payoff), Laguerre polynomial
     DD_primal = int((KK_primal+1)*(KK_primal+2)/2) #Number of polynomials 2 dim
@@ -62,7 +60,7 @@ def LongstaffSchwartz_signature_rBergomi(M,M2,N,N1,T,phi,rho,K,KK_primal,X0,H,xi
             P_primal[:,:,int(k*(k+1)/2+j)] = np.polynomial.laguerre.lagval2d(X,np.sqrt(V), C)
     Basis_primal = np.ones((M,N+1,DD_primal+D+1,N_strikes))
     for k in range(N_strikes):
-        Basis_primal[:,:,0:D,k]=SS
+        Basis_primal[:,:,0:D,k]=S
         Basis_primal[:,:,D:DD_primal+D,k] = P_primal
         Basis_primal[:,:,DD_primal+D,k] = phi[k](X)
     #discouting over one period
@@ -96,7 +94,7 @@ def LongstaffSchwartz_signature_rBergomi(M,M2,N,N1,T,phi,rho,K,KK_primal,X0,H,xi
                     else:
                         value[ITM[m]] = YY[ITM[m],j-1]
         print('Estimater LS for Payoff Number',k,'is',np.mean(value),'with standard-deviation',np.std(value))
-    del X,V,I,dI,dW1,dW2,dB,Basis,Basis_Reg,Basis_primal,P_primal,S,SS,QV,dX
+    del X,V,I,dI,dW1,dW2,dB,Basis,Basis_Reg,Basis_primal,P_primal,S,QV,dX
     #Start Resimulation
     X,V,I,dI,dW1,dW2,dB = SimulationofrBergomi(M2,N,T,phi,rho,K,X0,H,xi,eta,r)
     #exercise-dates with and without zero
@@ -112,8 +110,6 @@ def LongstaffSchwartz_signature_rBergomi(M,M2,N,N1,T,phi,rho,K,KK_primal,X0,H,xi
         QV[:,n+1] = QV[:,n]+V[:,n]*1/(N+1)
     S = signatureQV(tt,dX,QV,K)
     D = len(S[0,0,:])
-    SS = np.zeros((M2,N+1,D))
-    SS[:,1:N+1] = S
     ttt = np.linspace(0,T,N1+1)
     
     #Compute Basis-functions (for each payoff)
@@ -126,7 +122,7 @@ def LongstaffSchwartz_signature_rBergomi(M,M2,N,N1,T,phi,rho,K,KK_primal,X0,H,xi
             P_primal[:,:,int(k*(k+1)/2+j)] = np.polynomial.laguerre.lagval2d(X,np.sqrt(V), C)
     Basis_primal = np.ones((M2,N+1,DD_primal+D+1,N_strikes))
     for k in range(N_strikes):
-        Basis_primal[:,:,0:D,k]=SS
+        Basis_primal[:,:,0:D,k]=S
         Basis_primal[:,:,D:DD_primal+D,k] = P_primal
         Basis_primal[:,:,DD_primal+D,k] = phi[k](X)
         #Basis_primal[:,:,DD_primal+D+1,k] = phi[k](X)**2
