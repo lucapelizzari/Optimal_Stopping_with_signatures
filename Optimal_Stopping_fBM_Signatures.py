@@ -11,88 +11,13 @@ The details for the dual problem can be found in Section 3.2
 
 """
 import numpy as np
-from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet
-import scipy as sc
+from sklearn.linear_model import LinearRegression
 from helpfunctions import SignatureFull, LP_solver
 import time
 from FBM_package import FBM
-import matplotlib.pyplot as plt
 
 
-def UpperBoundfBm(M,M2,N,N1,T,K,h):
-    """Derive upper-bounds to optimal stopping problem with N1 exercise dates on [0,T]
-    Input:
-
-    M = Number of samples used in first simulation, along which we solve the LP
-    M2 = Number of samples used for resimulation (typically M2 >> M) 
-    N1 = Number of exercise points in [0,T] in the sense of Bermudda-options
-    N = Multiple of N1, number of discretization points for the grid [0,T] (typically N>>N1)
-    T = Final time for the stopping problem
-    K = Depth of linear (time-extended) signature
-    h = Hurst parameter
-    
-    Output: 
-    y0 = true-upper bound for the optimal stopping problem
-    STD = sample standard deviation of estimator
-    run_time= time (in seconds) needed for computation
-    
-    """
-    s = time.time()
-    #D = Number of entries of signature of 2-dim path (t,X_t)
-    D = int((1-(1+1)**(K+1))/(-1) -1)
-    
-    #exercise dates indices in discretization dates
-    subindex2 = [int((j)*N/N1) for j in range(N1+1)]
-    
-    
-    #generate samples of FBM paths and increments, and corresponding Brownian incremements
-    
-    tt = np.linspace(0,T,N+1)
-    F,dfBm,dW = FBM(N,M,h,method='cholesky').fbm()
-    F = F.transpose()
-    dW = dW.transpose()
-    dfBm = dfBm.transpose()
-    #compute linear signature using ii-package
-    
-    S = SignatureFull(tt, dfBm.reshape(M,N,1), K)
-
-    #Construct familiy of basis-martingales \int <S,l>dW used for the linear programm, using Euler-approximation
-    MG = np.zeros((M,N+1,1+D))
-    for dd in range(D):
-        for n in range(N):
-            MG[:,n+1,dd] = MG[:,n,dd]+S[:,n,dd]*dW[:,n]
-    
-    #Solve linear programm described in Remark 3.9, using Gurobi optimization https://www.gurobi.com
-    
-    xx = LP_solver(F,tt,N1,N,D,M,MG[:,subindex2,:],subindex2)
-    
-    #To get true-upper bounds, we resimulate paths and use the computed coefficients xx to compute upper-bound 
-    del F,dW,dfBm,MG
-   
-    #Resimulate all the paths similar as before, with new sample size M2
-    F,dfBm,dW = FBM(N,M2,h,method='cholesky').fbm()
-    F = F.transpose()
-    dW = dW.transpose()
-    dfBm = dfBm.transpose()
-    
-    #Similar we compute signature and martingales for the new samples
-    S = SignatureFull(tt, dfBm.reshape(M2,N,1), K)
-    MG = np.zeros((M2,N+1,D+1))
-    for dd in range(D):
-        for n in range(N):
-            MG[:,n+1,dd] = MG[:,n,dd]+S[:,n,dd]*dW[:,n]
-    #Now we can compute the true upper-bounds and standard deviation
-    y0 = np.mean(np.max(F[:,subindex2]-np.dot(MG,xx)[:,subindex2],axis=1))
-    STD = np.std(np.max(F[:,subindex2]-np.dot(MG,xx)[:,subindex2],axis=1))
-    print('true upper bound',np.mean(np.max(F[:,subindex2]-np.dot(MG,xx)[:,subindex2],axis=1)),'with STD', np.std(np.max(F[:,subindex2]-np.dot(MG,xx)[:,subindex2],axis=1)))
-    
-    ss = time.time()
-    run_time = ss-s
-    return y0,STD,run_time
-
-
-
-def LongstaffSchwartzfBm(M,M2,N,N1,T,K,h):
+def LongstaffSchwartz_signature_fBm(M,M2,N,N1,T,K,h):
     """Derive lower-bounds to optimal stopping problem with N1 exercise dates on [0,T],
     applying Longstaff-Schwartz with signatures described in Section 3.2
     Input:
@@ -193,3 +118,77 @@ def LongstaffSchwartzfBm(M,M2,N,N1,T,K,h):
     ss = time.time()
     run_time = ss-s
     return y0,regr,run_time
+
+def DualSAA_signature_fBm(M,M2,N,N1,T,K,h):
+    """Derive upper-bounds to optimal stopping problem with N1 exercise dates on [0,T]
+    Input:
+
+    M = Number of samples used in first simulation, along which we solve the LP
+    M2 = Number of samples used for resimulation (typically M2 >> M) 
+    N1 = Number of exercise points in [0,T] in the sense of Bermudda-options
+    N = Multiple of N1, number of discretization points for the grid [0,T] (typically N>>N1)
+    T = Final time for the stopping problem
+    K = Depth of linear (time-extended) signature
+    h = Hurst parameter
+    
+    Output: 
+    y0 = true-upper bound for the optimal stopping problem
+    STD = sample standard deviation of estimator
+    run_time= time (in seconds) needed for computation
+    
+    """
+    s = time.time()
+    #D = Number of entries of signature of 2-dim path (t,X_t)
+    D = int((1-(1+1)**(K+1))/(-1) -1)
+    
+    #exercise dates indices in discretization dates
+    subindex2 = [int((j)*N/N1) for j in range(N1+1)]
+    
+    
+    #generate samples of FBM paths and increments, and corresponding Brownian incremements
+    
+    tt = np.linspace(0,T,N+1)
+    F,dfBm,dW = FBM(N,M,h,method='cholesky').fbm()
+    F = F.transpose()
+    dW = dW.transpose()
+    dfBm = dfBm.transpose()
+    #compute linear signature using ii-package
+    
+    S = SignatureFull(tt, dfBm.reshape(M,N,1), K)
+
+    #Construct familiy of basis-martingales \int <S,l>dW used for the linear programm, using Euler-approximation
+    MG = np.zeros((M,N+1,1+D))
+    for dd in range(D):
+        for n in range(N):
+            MG[:,n+1,dd] = MG[:,n,dd]+S[:,n,dd]*dW[:,n]
+    
+    #Solve linear programm described in Remark 3.9, using Gurobi optimization https://www.gurobi.com
+    
+    xx = LP_solver(F,tt,N1,N,D,M,MG[:,subindex2,:],subindex2)
+    
+    #To get true-upper bounds, we resimulate paths and use the computed coefficients xx to compute upper-bound 
+    del F,dW,dfBm,MG
+   
+    #Resimulate all the paths similar as before, with new sample size M2
+    F,dfBm,dW = FBM(N,M2,h,method='cholesky').fbm()
+    F = F.transpose()
+    dW = dW.transpose()
+    dfBm = dfBm.transpose()
+    
+    #Similar we compute signature and martingales for the new samples
+    S = SignatureFull(tt, dfBm.reshape(M2,N,1), K)
+    MG = np.zeros((M2,N+1,D+1))
+    for dd in range(D):
+        for n in range(N):
+            MG[:,n+1,dd] = MG[:,n,dd]+S[:,n,dd]*dW[:,n]
+    #Now we can compute the true upper-bounds and standard deviation
+    y0 = np.mean(np.max(F[:,subindex2]-np.dot(MG,xx)[:,subindex2],axis=1))
+    STD = np.std(np.max(F[:,subindex2]-np.dot(MG,xx)[:,subindex2],axis=1))
+    print('true upper bound',np.mean(np.max(F[:,subindex2]-np.dot(MG,xx)[:,subindex2],axis=1)),'with STD', np.std(np.max(F[:,subindex2]-np.dot(MG,xx)[:,subindex2],axis=1)))
+    
+    ss = time.time()
+    run_time = ss-s
+    return y0,xx,run_time
+
+
+
