@@ -159,9 +159,8 @@ def DualSAA_signature_fBm(M,M2,N,N1,T,K,h):
     #Construct familiy of basis-martingales \int <S,l>dW used for the linear programm, using Euler-approximation
     MG = np.zeros((M,N+1,1+D))
     for dd in range(D):
-        for n in range(N):
-            MG[:,n+1,dd] = MG[:,n,dd]+S[:,n,dd]*dW[:,n]
-    
+        MG[:,1:N+1,dd] = np.cumsum(S[:,0:N,dd]*dW,axis=1)
+
     #Solve linear programm described in Remark 3.9, using Gurobi optimization https://www.gurobi.com
     
     xx = LP_solver(F,tt,N1,N,D,M,MG[:,subindex2,:],subindex2)
@@ -179,8 +178,7 @@ def DualSAA_signature_fBm(M,M2,N,N1,T,K,h):
     S = SignatureFull(tt, dfBm.reshape(M2,N,1), K)
     MG = np.zeros((M2,N+1,D+1))
     for dd in range(D):
-        for n in range(N):
-            MG[:,n+1,dd] = MG[:,n,dd]+S[:,n,dd]*dW[:,n]
+        MG[:,1:N+1,dd] = np.cumsum(S[:,0:N,dd]*dW,axis=1)
     #Now we can compute the true upper-bounds and standard deviation
     y0 = np.mean(np.max(F[:,subindex2]-np.dot(MG,xx)[:,subindex2],axis=1))
     STD = np.std(np.max(F[:,subindex2]-np.dot(MG,xx)[:,subindex2],axis=1))
