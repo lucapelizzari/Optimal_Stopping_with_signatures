@@ -72,7 +72,7 @@ def LongstaffSchwartz_signature_fBm(M,M2,N,N1,T,K,h):
         #Linear regression with signatures, approximating continuation value
         regr[k-1] = LinearRegression().fit(S_exercise[:,k-1,:],value)
         reg = regr[k-1].predict(S_exercise[:,k-1,:])
-        print(regr[k-1].score(S_exercise[:,k-1,:],value))
+        #print(regr[k-1].score(S_exercise[:,k-1,:],value))
         #update value at for each sample, using Longstaff-Schwarz recursion
         for m in range(M):
             if reg[m]> F_exercise[m,k-1]:
