@@ -117,9 +117,11 @@ def signatureQV(tGrid, dx,QV, deg):
     # We need to compute the signature of z
     k = ii.siglength(d+1, deg)
     N = len(tGrid)
-    sig = np.zeros((M,N-1,k))
+    
+    sig = np.zeros((M,N,k+1))
     for m in range(M):
-        sig[m,:] = ii.sig(z[m,:,:], deg,2)
+        sig[m,1:N,1:k+1] = ii.sig(z[m,:,:], deg,2)
+    sig[:,:,0] = 1
 
     return sig
 
@@ -162,5 +164,61 @@ def LP_solver(F,tt,N1,N,D,M,Y,subindex):
     m.optimize()
     xx = x.X
     ss = time.time()
-    print(ss-s)
+    print(ss-s, ' seconds needed to solve the linear program')
     return xx[M:M+L]
+
+
+def full_log_signature_dim_two_level_three(X, deg):
+    """
+    :param X: Matrix of discrete sample paths.
+    :param deg: Truncation level of the log-signature (>=1,<=3).
+    :return: log-signature for each subinterval.
+    """
+    m, n, d = X.shape
+    
+    assert d == 2
+    assert (deg>=1) and (deg<=3)
+    
+    log_sig_dim = {1: 2, 2: 3, 3: 5}
+    
+    log_sig = np.zeros((m, n, log_sig_dim[deg]))
+    
+    log_sig[:,1:,:2] = X[:, 1:] - X[:, 0].reshape(-1, 1, 2)
+        
+    if deg >=2:
+        dX = np.diff(X, axis=1)
+        
+        for i in range(1, n):
+            l = log_sig[:, i - 1]
+            dx = dX[:, i - 1]
+            log_sig[:, i, 2] = l[:, 2] + 0.5 * (l[:, 0] * dx[:, 1] - l[:, 1] * dx[:, 0])
+            
+    if deg == 3:
+        for i in range(1, n):
+            l = log_sig[:, i - 1]
+            dx = dX[:, i - 1]
+            log_sig[:, i, 3] = l[:, 3] - 0.5 * l[:, 2] * dx[:, 0] + (1 / 12) * \
+                    (l[:, 0] - dx[:, 0]) * (l[:, 0] * dx[:, 1] - l[:, 1] * dx[:, 0])
+            log_sig[:, i, 4] = l[:, 4] + 0.5 * l[:, 2] * dx[:, 1] - (1 / 12) * \
+                    (l[:, 1] - dx[:, 1]) * (l[:, 0] * dx[:, 1] - l[:, 1] * dx[:, 0])
+            
+    return log_sig
+
+def full_log_signature(X, deg):
+    """
+    :param X: Matrix of discrete sample paths.
+    :param deg: Truncation level of the log-signature.
+    :return: log-signature for each subinterval.
+    """
+    m, n, d = X.shape
+    
+    log_sig = np.zeros((m, n, ii.logsiglength(d, deg)))
+    
+    if (d==2) and (deg<=3):
+        return full_log_signature_dim_two_level_three(X, deg)
+    else:
+        bch = ii.prepare(d, deg, 'C') #precalculate the BCH formula
+        for i in range(1, n):
+            log_sig[:, i] = ii.logsig(X[:,:i+1], bch, 'C')
+    
+    return log_sig
