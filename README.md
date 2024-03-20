@@ -11,4 +11,4 @@ Remarks about the code:
 - For the construction of the signature we use the package iisignature (https://pypi.org/project/iisignature/)
 ## How to use the code
 
-For both examples we provide notebooks with step by step explanation of how to use the code, by computing lower and upper bounds for a certain choice of parameters, that might be changed by the user. For the sake of reduced running-time, in the notebooks we use smaller sample sizes than described in the numerical section, which might lead to slightly worse bounds, as the Monte-Carlo error is bigger. Increasing them is possible at the price of increased running time and memory-usage. 
+For both examples we provide notebooks with step by step explanation of how to use the code, by computing lower and upper bounds for a certain choice of parameters, that might be changed by the user. For the sake of reduced running-time, in the notebooks we use smaller sample sizes than described in the numerical section of the paper, which might lead to slightly worse bounds, as the Monte-Carlo error is bigger. Increasing them is possible at the price of increased running time and memory-usage. 
