@@ -43,7 +43,7 @@ def SimulationofrBergomi(M,N,T,phi,rho,K,X0,H,xi,eta,r):
     Y = rB.Y(dW1)
     V = rB.V(Y, xi, eta)
     #price-process in rBergomi
-    dB = rB.dB(dW1, dW2, rho = -0.9)
+    dB = rB.dB(dW1, dW2, rho)
     X = rB.S(V, dB) #array of Mx(N+1)
     X = X0*X*np.exp(r*tt)
     #print('European:',np.mean(np.exp(-r)*phi(X[:,-1])), 'MC-Error:', np.std(np.exp(-r)*phi(X[:,-1]))/np.sqrt(M))
