@@ -10,6 +10,7 @@ We only adjust interest rates
 @author: lucapelizzari
 """
 import numpy as np
+
 from utils import *
 
 class rBergomi(object):

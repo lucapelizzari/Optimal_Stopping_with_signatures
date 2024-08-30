@@ -52,4 +52,4 @@ def SimulationofrBergomi(M,N,T,phi,rho,K,X0,H,xi,eta,r):
         I[:,n+1] = I[:,n] + np.sqrt(V[:,n])*dW1[:,n,0]
     dI = I[:,1:int(T*N)+1]-I[:,0:int(T*N)]
     dI = dI.reshape(M,int(T*N),1)
-    return X,V,I,dI,dW1,dW2,dB
+    return X,V,I,dI,dW1,dW2,dB,Y
