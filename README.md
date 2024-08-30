@@ -1,5 +1,5 @@
 # Code for "Primal and dual optimal stopping with signatures"
-This repository contains the implementations related to the numerical section of the paper "Primal and dual optimal stopping with signatures" (https://arxiv.org/abs/2312.03444), as well as extended methods relying on deep and kernel learning methodologies, accompanying a working paper on "American option pricing in rough volatility models".
+This repository contains the implementations related to the numerical section of the paper "Primal and dual optimal stopping with signatures" (https://arxiv.org/abs/2312.03444), as well as extended methods relying on deep and kernel learning methodologies, accompanying a forthcoming paper on "American option pricing in rough volatility models".
 
 ## How to use the code
 
