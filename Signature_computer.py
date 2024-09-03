@@ -126,12 +126,13 @@ class SignatureComputer:
         elif self.signature_lift == "payoff-and-polynomial-extended":
             dP = Payoff[:, 1:] - Payoff[:, :-1]
             XX = np.stack([A, X, Payoff], axis=-1)
-            Poly = self._compute_polynomials(X)
+            Poly = self._compute_polynomials_2dim(X,vol)
+            return np.concatenate((Sig, Poly), axis=-1)
 
         elif self.signature_lift == "polynomial-vol":
             XX = np.stack([A, vol], axis=-1)
             Sig = self._full_log_signature(XX)
-            Poly = self._compute_polynomials_2dim(X,vol)
+            Poly = self._compute_polynomials(X)
             return np.concatenate((Sig, Poly), axis=-1)
         else:
             raise ValueError(f"Invalid signature_lift for log signature: {self.signature_lift}")
@@ -278,4 +279,6 @@ class SignatureComputer:
         return log_sig
     
     
-    
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
