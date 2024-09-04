@@ -155,7 +155,7 @@ class SignatureComputer:
             for j in range(0,k+1):
                 C = np.zeros((self.poly_degree+1,self.poly_degree+1))
                 C[k,j] = 1
-                Polynomials[:,:,int(k*(k+1)/2+j)] = np.polynomial.laguerre.lagval2d(X,np.sqrt(vol), C)
+                Polynomials[:,:,int(k*(k+1)/2+j)] = np.polynomial.laguerre.lagval2d(X,vol, C)
         return Polynomials
     
     def _signatureQV(self, tGrid, dx, QV):
