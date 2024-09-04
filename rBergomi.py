@@ -45,37 +45,41 @@ class rBergomi(object):
     def Y(self, dW):
         """
         Constructs Volterra process from appropriately
-        correlated 2d Brownian increments.
+        correlated 2d Brownian increments. If a = 0, Y is simply the Brownian motion W^1.
         """
-        Y1 = np.zeros((self.N, 1 + self.s)) # Exact integrals
-        Y2 = np.zeros((self.N, 1 + self.s)) # Riemann sums
+        if self.a == 0:
+            Y = np.zeros((self.N, 1 + self.n))
+            Y[:,1:1+self.n] = np.cumsum(dW[:,:,0], axis = 1)
+            return Y
+        else:
+            Y1 = np.zeros((self.N, 1 + self.s)) # Exact integrals
+            Y2 = np.zeros((self.N, 1 + self.s)) # Riemann sums
 
-        # Construct Y1 through exact integral
-        for i in np.arange(1, 1 + self.s, 1):
-            Y1[:,i] = dW[:,i-1,1] # Assumes kappa = 1
+         # Construct Y1 through exact integral
+            for i in np.arange(1, 1 + self.s, 1):
+                Y1[:,i] = dW[:,i-1,1] # Assumes kappa = 1
 
-        # Construct arrays for convolution
-        G = np.zeros(1 + self.s) # Gamma
-        for k in np.arange(2, 1 + self.s, 1):
-            G[k] = g(b(k, self.a)/self.n, self.a)
+            # Construct arrays for convolution
+            G = np.zeros(1 + self.s) # Gamma
+            for k in np.arange(2, 1 + self.s, 1):
+                G[k] = g(b(k, self.a)/self.n, self.a)
 
-        X = dW[:,:,0] # Xi
+            X = dW[:,:,0] # Xi
 
-        # Initialise convolution result, GX
-        GX = np.zeros((self.N, len(X[0,:]) + len(G) - 1))
+            # Init ialise convolution result, GX
+            GX = np.zeros((self.N, len(X[0,:]) + len(G) - 1))
 
-        # Compute convolution, FFT not used for small n
-        # Possible to compute for all paths in C-layer?
-        for i in range(self.N):
-            GX[i,:] = np.convolve(G, X[i,:])
+            # Compute convolution, FFT not used for small n
+            # Possible to compute for all paths in C-layer?
+            for i in range(self.N):
+                GX[i,:] = np.convolve(G, X[i,:])
 
-        # Extract appropriate part of convolution
-        Y2 = GX[:,:1 + self.s]
+            # Extract appropriate part of convolution
+            Y2 = GX[:,:1 + self.s]
 
-        # Finally contruct and return full process
-        Y = np.sqrt(2 * self.a + 1) * (Y1 + Y2)
-        return Y
-
+            # Finally contruct and return full process
+            Y = np.sqrt(2 * self.a + 1) * (Y1 + Y2)
+            return Y
     def dW2(self):
         """
         Obtain orthogonal increments.
